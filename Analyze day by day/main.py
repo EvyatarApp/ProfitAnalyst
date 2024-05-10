@@ -1,6 +1,9 @@
+from typing import Any
+
 import pandas as pd
 import matplotlib.pyplot as plt
-from datetime import datetime, timedelta
+from datetime import datetime
+from pandas import DataFrame
 
 
 def _check_df(func):
@@ -19,7 +22,7 @@ class ProfitMonitor:
         self.date_column = date_column
         self.profit_column = profit_column
         self.df = self.get_df()
-        self.df = self.fix_df()
+        self.df = self.fix_df
 
     @staticmethod
     def create_monthly_excel(path_to_export: str, number_of_years: int):
@@ -102,7 +105,7 @@ class ProfitMonitor:
         for i, row in df.sort_values(sort_by, ascending=ascending).head(number_of_rows).iterrows():
             print(f"on {row['DATE']} your {string_search} was {row[sort_by]}")
 
-    def get_df(self) -> pd.DataFrame:
+    def get_df(self) -> DataFrame | None | Any:
 
         if self.path is None:
             return None
@@ -117,7 +120,8 @@ class ProfitMonitor:
 
         return df
 
-    def fix_df(self) -> pd.DataFrame:
+    @property
+    def fix_df(self) -> Any | None:
 
         df = self.df
 
@@ -138,10 +142,12 @@ class ProfitMonitor:
 
             df.rename(columns={profit_column: "TOTAL_PROFIT"}, inplace=True)
 
-        df.dropna(subset="TOTAL_PROFIT",inplace=True)
+        df.dropna(subset="TOTAL_PROFIT", inplace=True)
         df["PROFIT_CHANGE"] = df["TOTAL_PROFIT"].diff()
 
-        print("Your dataframe is valid for all functions")
+        df["DATE"] = pd.to_datetime(df["DATE"], errors="coerce")
+        df.dropna(subset="DATE", inplace=True)
+
         return df[["DATE", "TOTAL_PROFIT", "PROFIT_CHANGE"]]
 
 
@@ -151,7 +157,4 @@ if __name__ == "__main__":
         date_column="date",
         profit_column="profit"
     )
-    launch.generate_top_5_lowest_profit_dates()
-    launch.generate_top_5_highest_profit_dates()
-    launch.generate_top_5_highest_returns_dates()
-    launch.generate_top_5_lowest_returns_dates()
+    launch.generate_all_time_line_graph()
