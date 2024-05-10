@@ -64,7 +64,46 @@ class ProfitMonitor:
 
         plt.show()
 
+    @_check_df
+    def generate_top_5_highest_profit_dates(self):
+        self.generic_generate(
+            sort_by="TOTAL_PROFIT",
+            number_of_rows=5,
+            string_search="profit",
+            ascending=False
+        )
+
+    @_check_df
+    def generate_top_5_lowest_profit_dates(self):
+        self.generic_generate(
+            sort_by="TOTAL_PROFIT",
+            number_of_rows=5,
+            string_search="profit",
+        )
+
+    @_check_df
+    def generate_top_5_highest_returns_dates(self):
+        self.generic_generate(
+            sort_by="PROFIT_CHANGE",
+            number_of_rows=5,
+            string_search="return",
+            ascending=False)
+
+    @_check_df
+    def generate_top_5_lowest_returns_dates(self):
+        self.generic_generate(
+            sort_by="PROFIT_CHANGE",
+            number_of_rows=5,
+            string_search="return"
+        )
+
+    def generic_generate(self, sort_by, number_of_rows, string_search, ascending=True):
+        df = self.df
+        for i, row in df.sort_values(sort_by, ascending=ascending).head(number_of_rows).iterrows():
+            print(f"on {row['DATE']} your {string_search} was {row[sort_by]}")
+
     def get_df(self) -> pd.DataFrame:
+
         if self.path is None:
             return None
 
@@ -99,11 +138,20 @@ class ProfitMonitor:
 
             df.rename(columns={profit_column: "TOTAL_PROFIT"}, inplace=True)
 
+        df.dropna(subset="TOTAL_PROFIT",inplace=True)
+        df["PROFIT_CHANGE"] = df["TOTAL_PROFIT"].diff()
+
         print("Your dataframe is valid for all functions")
-        return df[["DATE", "TOTAL_PROFIT"]]
+        return df[["DATE", "TOTAL_PROFIT", "PROFIT_CHANGE"]]
 
 
 if __name__ == "__main__":
     launch = ProfitMonitor(
-        r"https://docs.google.com/spreadsheets/d/e/2PACX-1vQCwgfianjSsF8p8kSnVKYrMThJ7S7ouJu03SEKDbyKlYYWsVNSQ2mFZxy_4kSEF7tj6BoUJs8erGrH/pub?output=csv")
-    launch.generate_all_time_line_graph()
+        path=r"https://docs.google.com/spreadsheets/d/e/2PACX-1vQCwgfianjSsF8p8kSnVKYrMThJ7S7ouJu03SEKDbyKlYYWsVNSQ2mFZxy_4kSEF7tj6BoUJs8erGrH/pub?output=csv",
+        date_column="date",
+        profit_column="profit"
+    )
+    launch.generate_top_5_lowest_profit_dates()
+    launch.generate_top_5_highest_profit_dates()
+    launch.generate_top_5_highest_returns_dates()
+    launch.generate_top_5_lowest_returns_dates()
