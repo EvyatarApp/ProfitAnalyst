@@ -44,7 +44,7 @@ class ProfitMonitor:
     def generate_top_5_highest_returns_dates(self):
         self.generic_generate(
             df=self.df,
-            sort_by="PROFIT_CHANGE",
+            sort_by="RETURN",
             number_of_rows=5,
             string_search="return",
             ascending=False)
@@ -52,7 +52,7 @@ class ProfitMonitor:
     def generate_top_5_lowest_returns_dates(self):
         self.generic_generate(
             df=self.df,
-            sort_by="PROFIT_CHANGE",
+            sort_by="RETURN",
             number_of_rows=5,
             string_search="return"
         )
@@ -62,7 +62,13 @@ class ProfitMonitor:
         for i, row in df.sort_values(sort_by, ascending=ascending).head(number_of_rows).iterrows():
             print(f"on {row['DATE']} your {string_search} was {row[sort_by]}")
 
-    def get_df(self) -> DataFrame | None | Any:
+    def get_return_hist(self):
+        plt.figure(figsize=(20,20))
+        plt.style.use("fivethirtyeight")
+        plt.hist(self.df.RETURN)
+        plt.show()
+
+    def get_df(self) -> DataFrame:
 
         if self.path.endswith("csv"):
             df = pd.read_csv(self.path)
@@ -87,12 +93,26 @@ class ProfitMonitor:
             df.rename(columns={profit_column: "TOTAL_PROFIT"}, inplace=True)
 
         df.dropna(subset="TOTAL_PROFIT", inplace=True)
-        df["PROFIT_CHANGE"] = df["TOTAL_PROFIT"].diff()
+        df["RETURN"] = df["TOTAL_PROFIT"].diff()
 
-        df["DATE"] = pd.to_datetime(df["DATE"], errors="coerce")
+        df["DATE"] = pd.to_datetime(df["DATE"], format="%d-%m-%Y", errors="coerce")
         df.dropna(subset="DATE", inplace=True)
 
-        return df[["DATE", "TOTAL_PROFIT", "PROFIT_CHANGE"]]
+        return df[["DATE", "TOTAL_PROFIT", "RETURN"]]
+
+    def get_difference_between_dates(self, first_date, end_date):
+        df = self.df
+        df = df[df.DATE.between(first_date, end_date)]
+        if len(df) == 0:
+            raise ValueError(f"The excel / csv has no documentation between {first_date} and {end_date}")
+        elif len(df) == 1:
+            raise ValueError(f"The excel / csv has only one documentation between {first_date} and {end_date}.\nThere is nothing to calculate")
+        else:
+            difference = df.iloc[-1]["TOTAL_PROFIT"] - df.iloc[0]["TOTAL_PROFIT"]
+            if difference >= 0:
+                print(f"Between {first_date} and {end_date} you earned {difference}")
+            else:
+                print(f"Between {first_date} and {end_date} you lost {difference}")
 
 
 if __name__ == "__main__":
@@ -101,4 +121,4 @@ if __name__ == "__main__":
         date_column="date",
         profit_column="profit"
     )
-    launch.generate_all_time_line_graph()
+    launch.get_return_hist()
