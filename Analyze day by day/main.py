@@ -1,4 +1,3 @@
-from typing import Any
 import pandas as pd
 import matplotlib.pyplot as plt
 from pandas import DataFrame
@@ -60,7 +59,7 @@ class ProfitMonitor:
     @staticmethod
     def generic_generate(df, sort_by, number_of_rows, string_search, ascending=True):
         for i, row in df.sort_values(sort_by, ascending=ascending).head(number_of_rows).iterrows():
-            print(f"on {row['DATE']} your {string_search} was {row[sort_by]}")
+            print(f"on {row['DATE']} your {string_search} was {row[sort_by]} shekels")
 
     def get_return_hist(self):
         plt.figure(figsize=(20,20))
@@ -110,9 +109,9 @@ class ProfitMonitor:
         else:
             difference = df.iloc[-1]["TOTAL_PROFIT"] - df.iloc[0]["TOTAL_PROFIT"]
             if difference >= 0:
-                print(f"Between {first_date} and {end_date} you earned {difference}")
+                print(f"Between {first_date} and {end_date} you earned {difference} shekels")
             else:
-                print(f"Between {first_date} and {end_date} you lost {difference}")
+                print(f"Between {first_date} and {end_date} you lost {difference} shekels")
 
 
 if __name__ == "__main__":
